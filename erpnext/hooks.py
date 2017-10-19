@@ -148,6 +148,9 @@ doc_events = {
 	"Sales Order": {
 		"after_insert":"erpnext.selling.doctype.sales_order.sales_order.update_item_group_in_sales_order"
 	},
+	"Delivery Note": {
+		"after_insert":"erpnext.stock.doctype.delivery_note.delivery_note.update_item_group_in_delivery_note"
+	},
 	"User": {
 		"after_insert": "frappe.email.doctype.contact.contact.update_contact",
 		"validate": "erpnext.hr.doctype.employee.employee.validate_employee_role",

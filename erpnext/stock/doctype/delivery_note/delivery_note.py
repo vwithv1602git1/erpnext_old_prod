@@ -13,6 +13,8 @@ from erpnext.controllers.selling_controller import SellingController
 from frappe.desk.notifications import clear_doctype_notifications
 from erpnext.stock.doctype.batch.batch import set_batch_nos
 
+from erpnext.vlog import vwrite
+
 form_grid_templates = {
 	"items": "templates/form_grid/item_grid.html"
 }
@@ -474,3 +476,12 @@ def make_sales_return(source_name, target_doc=None):
 def update_delivery_note_status(docname, status):
 	dn = frappe.get_doc("Delivery Note", docname)
 	dn.update_status(status)
+
+def update_item_group_in_delivery_note(delivery_note,method):
+	item = delivery_note.__dict__.get("items")[0].__dict__
+	item_group = item.get("item_group")
+	name=item.get("parent")
+	createddeliverynote = frappe.get_doc("Delivery Note", {"name": name})
+	createddeliverynote.item_group = item_group
+	createddeliverynote.flags.ignore_mandatory = True
+	createddeliverynote.save(ignore_permissions=True)
