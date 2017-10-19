@@ -14,6 +14,8 @@ from erpnext.controllers.recurring_document import month_map, get_next_date
 
 from erpnext.controllers.selling_controller import SellingController
 
+from erpnext.vlog import vwrite
+
 form_grid_templates = {
 	"items": "templates/form_grid/item_grid.html"
 }
@@ -719,3 +721,12 @@ def make_production_orders(items, sales_order, company, project=None):
 def update_status(status, name):
 	so = frappe.get_doc("Sales Order", name)
 	so.update_status(status)
+
+def update_item_group_in_sales_order(sales_order,method):
+	item = sales_order.__dict__.get("items")[0].__dict__
+	item_group = item.get("item_group")
+	name=item.get("parent")
+	createdsalesorder = frappe.get_doc("Sales Order", {"name": name})
+	createdsalesorder.item_group = item_group
+	createdsalesorder.flags.ignore_mandatory = True
+	createdsalesorder.save(ignore_permissions=True)

@@ -145,6 +145,9 @@ doc_events = {
 		"on_submit": "erpnext.stock.doctype.material_request.material_request.update_completed_and_requested_qty",
 		"on_cancel": "erpnext.stock.doctype.material_request.material_request.update_completed_and_requested_qty"
 	},
+	"Sales Order": {
+		"after_insert":"erpnext.selling.doctype.sales_order.sales_order.update_item_group_in_sales_order"
+	},
 	"User": {
 		"after_insert": "frappe.email.doctype.contact.contact.update_contact",
 		"validate": "erpnext.hr.doctype.employee.employee.validate_employee_role",
