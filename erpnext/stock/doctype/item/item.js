@@ -4,6 +4,7 @@
 frappe.provide("erpnext.item");
 
 frappe.ui.form.on("Item", {
+
 	setup: function(frm) {
 		frm.add_fetch('attribute', 'numeric_values', 'numeric_values');
 		frm.add_fetch('attribute', 'from_range', 'from_range');
@@ -59,6 +60,9 @@ frappe.ui.form.on("Item", {
 
 			frm.add_custom_button(__("Variant"), function() {
 				erpnext.item.make_variant(frm);
+			}, __("Make"));
+			frm.add_custom_button(__("All Possible Variants"), function() {
+				erpnext.item.make_all_possible_variants(frm);
 			}, __("Make"));
 			frm.page.set_inner_btn_group_as_primary(__("Make"));
 		}
@@ -267,6 +271,14 @@ $.extend(erpnext.item, {
 		}
 	},
 
+	make_all_possible_variants: function(frm) {
+	    if(frm.doc.variant_based_on==="Item Attribute") {
+			erpnext.item.show_modal_for_item_attributes_selection(frm);
+		} else {
+			alert("Sorry. This action can't be performed.")
+		}
+	},
+
 	show_modal_for_manufacturers: function(frm) {
 		var dialog = new frappe.ui.Dialog({
 			fields: [
@@ -409,6 +421,142 @@ $.extend(erpnext.item, {
 					$(e.target).val('').trigger('input');
 				})
 		});
+	},
+
+	show_modal_for_item_attributes_selection: function(frm) {
+	    var fields = []
+
+		for(var i=0;i< frm.doc.attributes.length;i++){
+			var fieldtype, desc;
+			var row = frm.doc.attributes[i];
+			if (row.numeric_values){
+				fieldtype = "Float";
+				desc = "Min Value: "+ row.from_range +" , Max Value: "+ row.to_range +", in Increments of: "+ row.increment
+			}
+			else {
+				fieldtype = "Data";
+				desc = ""
+			}
+			fields = fields.concat({
+				"label": row.attribute + " (comma separated. eg., In case of RAM: '4 GB, 8 GB')",
+				"fieldname": row.attribute,
+				"fieldtype": fieldtype,
+				"reqd": 1,
+				"description": desc
+			})
+		}
+		var d = new frappe.ui.Dialog({
+			title: __("Make All Possible Variants"),
+			fields: fields
+		});
+
+		d.set_primary_action(__("Make"), function() {
+			args = d.get_values();
+			if(!args) return;
+			frappe.call({
+				method:"erpnext.controllers.item_variant.make_all_possible_variants",
+				args: {
+					"template": frm.doc.name,
+					"args": d.get_values()
+				},
+				callback: function(r) {
+					// returns variant item
+					/*if (r.message) {
+						var variant = r.message;
+						var msgprint_dialog = frappe.msgprint(__("Item Variant {0} already exists with same attributes",
+							[repl('<a href="#Form/Item/%(item_encoded)s" class="strong variant-click">%(item)s</a>', {
+								item_encoded: encodeURIComponent(variant),
+								item: variant
+							})]
+						));
+						msgprint_dialog.hide_on_page_refresh = true;
+						msgprint_dialog.$wrapper.find(".variant-click").on("click", function() {
+							d.hide();
+						});
+					} else {
+						d.hide();
+						frappe.call({
+							method:"erpnext.controllers.item_variant.create_variant",
+							args: {
+								"item": frm.doc.name,
+								"args": d.get_values()
+							},
+							callback: function(r) {
+								var doclist = frappe.model.sync(r.message);
+								frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+							}
+						});
+					}*/
+				}
+			});
+		});
+
+		d.show();
+
+		$.each(d.fields_dict, function(i, field) {
+
+			if(field.df.fieldtype !== "Data") {
+				return;
+			}
+
+			$(field.input_area).addClass("ui-front");
+
+			var input = field.$input.get(0);
+			input.awesomplete = new Awesomplete(input, {
+				minChars: 0,
+				maxItems: 99,
+				filter: function(text, input) {
+                  return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
+                },
+                replace: function(text) {
+                  var before = this.input.value.match(/^.+,\s*|/)[0];
+                  this.input.value = before + text + ", ";
+                }
+//				autoFirst: true,
+//				list: [],
+			});
+			input.field = field;
+
+
+			field.$input
+				.on('input', function(e) {
+				    var term = e.target.value.lastIndexOf(',')>-1?e.target.value.substring(e.target.value.lastIndexOf(',')+2,e.target.value.length):e.target.value;
+					frappe.call({
+						method:"frappe.client.get_list",
+						args:{
+							doctype:"Item Attribute Value",
+							filters: [
+								["parent","=", i],
+								["attribute_value", "like", term + "%"]
+							],
+							fields: ["attribute_value"]
+						},
+						callback: function(r) {
+							if (r.message) {
+								e.target.awesomplete.list = r.message.map(function(d) { return d.attribute_value; });
+							}
+						}
+					});
+				})
+				.on('focus', function(e) {
+					$(e.target).trigger('input');
+				})
+
+
+		});
+	    /*frappe.confirm(__("Do you really want to create all possible variants for the {0}", [frm.docname]), function() {
+            console.log("Call variant creation method in item.py file by sending item_code in frm or entire form")
+            frappe.call({
+				method:"erpnext.controllers.item_variant.make_all_possible_variants",
+				args: {
+					"template": frm.doc.name
+				},
+				callback: function(r) {
+					// returns variant item
+					alert("in callback")
+				}
+			});
+        });*/
 	},
 
 	toggle_attributes: function(frm) {

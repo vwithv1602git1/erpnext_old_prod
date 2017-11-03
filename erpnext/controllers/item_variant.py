@@ -6,10 +6,74 @@ import frappe
 from frappe import _
 from frappe.utils import cstr, flt
 import json
+from erpnext.vlog import vwrite
+import ast, itertools
 
 class ItemVariantExistsError(frappe.ValidationError): pass
 class InvalidItemAttributeValueError(frappe.ValidationError): pass
 class ItemTemplateCannotHaveStock(frappe.ValidationError): pass
+
+
+
+def get_combinations(template,obj):
+	result = []
+	pre_combs = []
+	var_names = {}
+	for key, value in obj.iteritems():
+		pre_combs.append(key)
+		var_names[key] = value
+	raw_combs = []
+	for pre_comb in pre_combs:
+		raw_combs.append(var_names[pre_comb].lstrip(' ').lstrip(',').rstrip(' ').rstrip(',').split(","))
+	combs = list(itertools.product(*raw_combs))
+	for comb in combs:
+		args_array = []
+		item_name = template + " - "
+		for attr in comb:
+			item_name = item_name + attr.lstrip(' ').rstrip(' ') + " - "
+			args_array.append(attr.lstrip(' ').rstrip(' '))
+		result.append({'item_name':item_name.rstrip('- '),'attributes':args_array})
+	return result
+
+@frappe.whitelist()
+def make_all_possible_variants(template, args=None, variant=None):
+	# get variant attributes to create items
+	args_obj = ast.literal_eval(args)
+	# args_obj = {'Hard Disk Capacity': '1 TB,  320 GB', 'Warranty Duration': '1 Year', 'RAM': '2 GB,  4 GB', 'Choose Model': 'Core I5 2nd Gen,  Core I5 3rd Gen, '}
+	for key,value in args_obj.iteritems():
+		attr_values = value.lstrip(' ').lstrip(',').rstrip(' ').rstrip(',').split(",")
+		for attr_value in attr_values:
+			# query checks if attribute is valid or not
+			query = """select iva.name from `tabItem Variant Attribute` iva inner join `tabItem Attribute Value` iav on iva.attribute=iav.parent where iva.parent= '%s' and iva.attribute='%s' and iav.attribute_value='%s'""" % (
+			template, key, attr_value.lstrip(' ').rstrip(' '))
+			is_valid_attr = frappe.db.sql(query)
+			if not len(is_valid_attr):
+				frappe.throw(_("One or more attributes/attribute values doesn't match. Please select from the options provided instead of manual input."))
+
+	combinations = get_combinations(template,args_obj)
+	for combination in combinations:
+		vwrite("call create variant")
+		# vwrite(args_obj)
+		# vwrite(combination)
+		variant_args_array = {}
+		for variant in combination.get("attributes"):
+			# query to get attributes from `tabItem Variant Attribute` to make args variable which should be passed to create_variant(template,args)
+			query = """select iva.attribute from `tabItem Variant Attribute` iva inner join `tabItem Attribute Value` iav on iva.attribute=iav.parent where iva.parent= '%s' and iav.attribute_value='%s'""" % (
+				template, variant.lstrip(' ').rstrip(' '))
+			attribute_name = frappe.db.sql(query)
+			variant_args_array[((attribute_name[0][0]))] = variant
+		# vwrite("Send %s with below args to create_variant" % template)
+		# vwrite(variant_args_array)
+		variant_data = create_variant(template, variant_args_array)
+		variant_data.set("has_serial_no",1)
+		variant_data.set("directly_saleable", 1)
+		variant_data.set("sync_with_ebay", 1)
+		variant_data.set("sync_with_ebaytwo", 1)
+		if not frappe.db.get_value("Item", {"item_code": variant_data.get("item_code")}, "name"):
+			variant_data.save()
+		else:
+			vwrite("Variant (%s) already exists" % variant_data.get("item_code"))
+	return True
 
 @frappe.whitelist()
 def get_variant(template, args=None, variant=None, manufacturer=None,
@@ -151,7 +215,6 @@ def find_variant(template, args, variant_item_code=None):
 def create_variant(item, args):
 	if isinstance(args, basestring):
 		args = json.loads(args)
-
 	template = frappe.get_doc("Item", item)
 	variant = frappe.new_doc("Item")
 	variant.variant_based_on = 'Item Attribute'
@@ -162,18 +225,15 @@ def create_variant(item, args):
 			"attribute": d.attribute,
 			"attribute_value": args.get(d.attribute)
 		})
-
 	variant.set("attributes", variant_attributes)
 	copy_attributes_to_variant(template, variant)
 	make_variant_item_code(template.item_code, template.item_name, variant)
-
 	return variant
 
 def copy_attributes_to_variant(item, variant):
 	from frappe.model import no_value_fields
 
 	# copy non no-copy fields
-
 	exclude_fields = ["item_code", "item_name", "show_in_website"]
 
 	if item.variant_based_on=='Manufacturer':
