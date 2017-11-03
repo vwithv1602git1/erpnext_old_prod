@@ -460,6 +460,7 @@ $.extend(erpnext.item, {
 					"args": d.get_values()
 				},
 				callback: function(r) {
+					d.hide();
 					// returns variant item
 					/*if (r.message) {
 						var variant = r.message;
