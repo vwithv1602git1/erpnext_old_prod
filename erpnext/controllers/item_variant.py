@@ -37,9 +37,11 @@ def get_combinations(template,obj):
 
 @frappe.whitelist()
 def make_all_possible_variants(template, args=None, variant=None):
-	# get variant attributes to create items
-	args_obj = ast.literal_eval(args)
-	# args_obj = {'Hard Disk Capacity': '1 TB,  320 GB', 'Warranty Duration': '1 Year', 'RAM': '2 GB,  4 GB', 'Choose Model': 'Core I5 2nd Gen,  Core I5 3rd Gen, '}
+	input_args = ast.literal_eval(args)
+	args_obj = {}
+	for key, value in input_args.iteritems():
+		if(key != 'has_serial_no'):
+			args_obj[key] = value
 	for key,value in args_obj.iteritems():
 		attr_values = value.lstrip(' ').lstrip(',').rstrip(' ').rstrip(',').split(",")
 		for attr_value in attr_values:
@@ -65,7 +67,7 @@ def make_all_possible_variants(template, args=None, variant=None):
 		# vwrite("Send %s with below args to create_variant" % template)
 		# vwrite(variant_args_array)
 		variant_data = create_variant(template, variant_args_array)
-		variant_data.set("has_serial_no",1)
+		variant_data.set("has_serial_no",input_args.get("has_serial_no"))
 		variant_data.set("directly_saleable", 1)
 		variant_data.set("sync_with_ebay", 1)
 		variant_data.set("sync_with_ebaytwo", 1)

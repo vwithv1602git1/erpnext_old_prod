@@ -445,6 +445,15 @@ $.extend(erpnext.item, {
 				"description": desc
 			})
 		}
+		/* >> vwithv1602git1/erpnext_old_prod/issues/#2*/
+		fields = fields.concat({
+		    "label": "Has Serial No",
+		    "fieldname":"has_serial_no",
+		    "fieldtype":"Check",
+		    "description":"",
+		    "is_item_attribute":false
+		})
+		/* << vwithv1602git1/erpnext_old_prod/issues/#2*/
 		var d = new frappe.ui.Dialog({
 			title: __("Make All Possible Variants"),
 			fields: fields
