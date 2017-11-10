@@ -477,11 +477,7 @@ def update_delivery_note_status(docname, status):
 	dn = frappe.get_doc("Delivery Note", docname)
 	dn.update_status(status)
 
-def update_item_group_in_delivery_note(delivery_note,method):
-	item = delivery_note.__dict__.get("items")[0].__dict__
-	item_group = item.get("item_group")
-	name=item.get("parent")
-	createddeliverynote = frappe.get_doc("Delivery Note", {"name": name})
-	createddeliverynote.item_group = item_group
-	createddeliverynote.flags.ignore_mandatory = True
-	createddeliverynote.save(ignore_permissions=True)
+def update_item_group_item_name_in_delivery_note(delivery_note,method):
+	dn = delivery_note
+	dn.item_name=dn.get("items")[0].get("item_name")
+	dn.item_group=dn.get("items")[0].get("item_group")

@@ -146,10 +146,10 @@ doc_events = {
 		"on_cancel": "erpnext.stock.doctype.material_request.material_request.update_completed_and_requested_qty"
 	},
 	"Sales Order": {
-		"after_insert":"erpnext.selling.doctype.sales_order.sales_order.update_item_group_in_sales_order"
+		"before_save":"erpnext.selling.doctype.sales_order.sales_order.update_item_group_item_name_in_sales_order"
 	},
 	"Delivery Note": {
-		"after_insert":"erpnext.stock.doctype.delivery_note.delivery_note.update_item_group_in_delivery_note"
+		"before_save":"erpnext.stock.doctype.delivery_note.delivery_note.update_item_group_item_name_in_delivery_note"
 	},
 	"User": {
 		"after_insert": "frappe.email.doctype.contact.contact.update_contact",

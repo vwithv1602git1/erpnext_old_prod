@@ -722,11 +722,8 @@ def update_status(status, name):
 	so = frappe.get_doc("Sales Order", name)
 	so.update_status(status)
 
-def update_item_group_in_sales_order(sales_order,method):
-	item = sales_order.__dict__.get("items")[0].__dict__
-	item_group = item.get("item_group")
-	name=item.get("parent")
-	createdsalesorder = frappe.get_doc("Sales Order", {"name": name})
-	createdsalesorder.item_group = item_group
-	createdsalesorder.flags.ignore_mandatory = True
-	createdsalesorder.save(ignore_permissions=True)
+
+def update_item_group_item_name_in_sales_order(sales_order,method):
+	so = sales_order
+	so.item_name=so.get("items")[0].get("item_name")
+	so.item_group=so.get("items")[0].get("item_group")
