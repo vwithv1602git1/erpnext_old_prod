@@ -14,7 +14,7 @@ from frappe.desk.notifications import clear_doctype_notifications
 from erpnext.stock.doctype.batch.batch import set_batch_nos
 
 from erpnext.vlog import vwrite
-import ast
+import json
 
 form_grid_templates = {
 	"items": "templates/form_grid/item_grid.html"
@@ -485,7 +485,7 @@ def update_item_group_item_name_in_delivery_note(delivery_note,method):
 
 @frappe.whitelist()
 def update_send_email_flag(delivery_note,flag_value):
-	d_note = ast.literal_eval(delivery_note)
+	d_note = json.loads(delivery_note)
 	dn = frappe.get_doc("Delivery Note", d_note.get("name"))
 	dn.send_email= flag_value
 	dn.save(ignore_permissions=True)
