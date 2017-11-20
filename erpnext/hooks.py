@@ -146,10 +146,12 @@ doc_events = {
 		"on_cancel": "erpnext.stock.doctype.material_request.material_request.update_completed_and_requested_qty"
 	},
 	"Sales Order": {
-		"before_save":"erpnext.selling.doctype.sales_order.sales_order.update_item_group_item_name_in_sales_order"
+		"before_save":"erpnext.selling.doctype.sales_order.sales_order.update_item_group_item_name_in_sales_order",
+		"after_insert":"erpnext.selling.doctype.sales_order.sales_order.trigger_ebay_m2m_message"
 	},
 	"Delivery Note": {
-		"before_save":"erpnext.stock.doctype.delivery_note.delivery_note.update_item_group_item_name_in_delivery_note"
+		"before_save":"erpnext.stock.doctype.delivery_note.delivery_note.update_item_group_item_name_in_delivery_note",
+		"after_insert":"erpnext.stock.doctype.delivery_note.delivery_note.trigger_ebay_m2m_message"
 	},
 	"User": {
 		"after_insert": "frappe.email.doctype.contact.contact.update_contact",

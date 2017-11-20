@@ -15,6 +15,8 @@ from erpnext.controllers.recurring_document import month_map, get_next_date
 from erpnext.controllers.selling_controller import SellingController
 
 from erpnext.vlog import vwrite
+from erpnext_ebay.utils import send_ebay_m2m_message
+from erpnext_ebaytwo.utils import send_ebaytwo_m2m_message
 
 form_grid_templates = {
 	"items": "templates/form_grid/item_grid.html"
@@ -727,3 +729,19 @@ def update_item_group_item_name_in_sales_order(sales_order,method):
 	so = sales_order
 	so.item_name=so.get("items")[0].get("item_name")
 	so.item_group=so.get("items")[0].get("item_group")
+
+def trigger_ebay_m2m_message(sales_order,method):
+	so = sales_order.__dict__
+	if(so.get("ebay_buyer_id") or so.get("ebaytwo_buyer_id")):
+		if(so.get("item_group")=='LED TV'):
+			subject = "Important: LED TV Order Confirmation"
+			message_body_code = "sales_order_for_led_tv"
+			item_code = so.get("items")[0].__dict__.get("item_code")
+			if so.get("ebay_buyer_id"):
+				itemid = frappe.db.get_value("Item", item_code, "ebay_product_id")
+				recipient = so.get("ebay_buyer_id")
+				send_ebay_m2m_message(itemid,subject,message_body_code,recipient)
+			else:
+				itemid = frappe.db.get_value("Item", item_code, "ebaytwo_product_id")
+				recipient = so.get("ebaytwo_buyer_id")
+				send_ebaytwo_m2m_message(itemid, subject, message_body_code, recipient)

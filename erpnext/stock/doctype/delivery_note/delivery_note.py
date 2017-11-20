@@ -14,6 +14,8 @@ from frappe.desk.notifications import clear_doctype_notifications
 from erpnext.stock.doctype.batch.batch import set_batch_nos
 
 from erpnext.vlog import vwrite
+from erpnext_ebay.utils import send_ebay_m2m_message
+from erpnext_ebaytwo.utils import send_ebaytwo_m2m_message
 import json
 
 form_grid_templates = {
@@ -491,3 +493,52 @@ def update_send_email_flag(delivery_note,flag_value):
 	dn.save(ignore_permissions=True)
 	dn.submit()
 	return flag_value
+
+@frappe.whitelist()
+def get_ebay_buyer_id_from_dn(delivery_note_item):
+	against_so = frappe.db.get_value("Delivery Note Item", delivery_note_item, "against_sales_order")
+	so = frappe.get_doc("Sales Order", against_so)
+	buyer_id = ""
+	column = ""
+	ebay_item_id = ""
+	if(so.get("ebay_buyer_id") or so.get("ebaytwo_buyer_id")):
+		if(so.get("ebay_buyer_id")):
+			buyer_id = so.get("ebay_buyer_id")
+			column = "ebay_buyer_id"
+			ebay_order_id = so.get("ebay_order_id")
+		else:
+			buyer_id = so.get("ebaytwo_buyer_id")
+			column = "ebaytwo_buyer_id"
+			ebay_order_id = so.get("ebaytwo_order_id")
+		ebay_item_id = ebay_order_id.split('-')[0]
+	return {"buyer_id":buyer_id,"column":column,"ebay_item_id":ebay_item_id}
+def trigger_ebay_m2m_message(delivery_note,method):
+	dn = delivery_note.__dict__
+	dn_items = dn.get("items")[0].__dict__
+	against_so = dn_items.get("against_sales_order")
+	so = frappe.get_doc("Sales Order", against_so)
+	if(so.get("ebay_buyer_id") or so.get("ebaytwo_buyer_id")):
+		if(so.get("item_group")=='LED TV'):
+			subject = "IMPORTANT: Your LED TV Shipped! Important information to Claim Ebay Guarantee in case of Any Issues!"
+			message_body_code = "delivery_note_for_led_tv"
+			item_code = so.get("items")[0].__dict__.get("item_code")
+			if so.get("ebay_buyer_id"):
+				itemid = frappe.db.get_value("Item", item_code, "ebay_product_id")
+				recipient = so.get("ebay_buyer_id")
+				send_ebay_m2m_message(itemid,subject,message_body_code,recipient)
+			else:
+				itemid = frappe.db.get_value("Item", item_code, "ebaytwo_product_id")
+				recipient = so.get("ebaytwo_buyer_id")
+				send_ebaytwo_m2m_message(itemid, subject, message_body_code, recipient)
+		else:
+			subject = "Ebay: Congrats! Your Item Shipped! VERY IMPORTANT INFORMATION INSIDE"
+			message_body_code = "delivery_note_for_other_items"
+			item_code = so.get("items")[0].__dict__.get("item_code")
+			if so.get("ebay_buyer_id"):
+				itemid = frappe.db.get_value("Item", item_code, "ebay_product_id")
+				recipient = so.get("ebay_buyer_id")
+				send_ebay_m2m_message(itemid, subject, message_body_code, recipient)
+			else:
+				itemid = frappe.db.get_value("Item", item_code, "ebaytwo_product_id")
+				recipient = so.get("ebaytwo_buyer_id")
+				send_ebaytwo_m2m_message(itemid, subject, message_body_code, recipient)
