@@ -11,9 +11,9 @@ def get_ebay_m2m_details_for_so(sales_order):
 	buyer_id = ""
 	column = ""
 	ebay_item_id = ""
-	vwrite("new")
+	ebay_order_id = ""
 	sales_order = json.loads(sales_order)
-
+	
 	if ("ebay_buyer_id" in sales_order):
 		buyer_id = sales_order.get("ebay_buyer_id")
 		column = "ebay_buyer_id"
