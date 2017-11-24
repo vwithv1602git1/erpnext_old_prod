@@ -90,4 +90,5 @@ cur_frm.set_query("batch_no", function(doc) {
 
 cur_frm.add_fetch('item_code', 'item_name', 'item_name');
 cur_frm.add_fetch('item_code', 'description', 'description');
+cur_frm.add_fetch('item_code', 'item_group', 'item_group');
 
