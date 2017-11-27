@@ -521,7 +521,7 @@ def trigger_ebay_m2m_message(delivery_note,method):
 		"item_name": dn_items.get("against_sales_order"),
 		"video_link": dn.get("video_link")
 	}
-	if((so.get("ebay_buyer_id") and so.get("ebay_order_id")) or (so.get("ebaytwo_buyer_id") and so.get("ebaytwo_order_id"))):
+	if((dn.get("is_return")==0) and ((so.get("ebay_buyer_id") and so.get("ebay_order_id")) or (so.get("ebaytwo_buyer_id") and so.get("ebaytwo_order_id")))):
 		if(so.get("item_group")=='LED TV'):
 			subject = "IMPORTANT: Your LED TV Shipped! Important information to Claim Ebay Guarantee in case of Any Issues!"
 			message_body_code = "delivery_note_for_led_tv"
