@@ -732,7 +732,7 @@ def update_item_group_item_name_in_sales_order(sales_order,method):
 
 def trigger_ebay_m2m_message(sales_order,method):
 	so = sales_order.__dict__
-	if((so.get("ebay_buyer_id") and so.get("ebay_order_id")) or (so.get("ebaytwo_buyer_id") and so.get("ebaytwo_order_id"))):
+	if(not so.get("amended_from") and ((so.get("ebay_buyer_id") and so.get("ebay_order_id")) or (so.get("ebaytwo_buyer_id") and so.get("ebaytwo_order_id")))):
 		if(so.get("item_group")=='LED TV'):
 			subject = "Important: LED TV Order Confirmation"
 			message_body_code = "sales_order_for_led_tv"
