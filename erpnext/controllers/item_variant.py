@@ -69,6 +69,8 @@ def make_all_possible_variants(template, args=None, variant=None):
 		variant_data = create_variant(template, variant_args_array)
 		variant_data.set("has_serial_no",input_args.get("has_serial_no"))
 		variant_data.set("directly_saleable", 1)
+		variant_data.set("is_purchase_item", 1)
+		variant_data.set("is_sales_item", 1)		
 		variant_data.set("sync_with_ebay", 1)
 		variant_data.set("sync_with_ebaytwo", 1)
 		if not frappe.db.get_value("Item", {"item_code": variant_data.get("item_code")}, "name"):
