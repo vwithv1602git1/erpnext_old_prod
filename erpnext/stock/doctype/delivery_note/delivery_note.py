@@ -518,7 +518,7 @@ def trigger_ebay_m2m_message(delivery_note,method):
 	against_so = dn_items.get("against_sales_order")
 	so = frappe.get_doc("Sales Order", against_so)
 	message_body_params = {
-		"item_name": dn_items.get("item_name"),
+		"item_name": dn_items.get("item_code"),
 		"video_link": dn.get("video_link")
 	}
 	if((dn.get("is_return")==0) and ((so.get("ebay_buyer_id") and so.get("ebay_order_id")) or (so.get("ebaytwo_buyer_id") and so.get("ebaytwo_order_id")))):
