@@ -17,6 +17,7 @@ from erpnext.vlog import vwrite
 from erpnext_ebay.utils import send_ebay_m2m_message
 from erpnext_ebaytwo.utils import send_ebaytwo_m2m_message
 import json
+from datetime import date,datetime
 
 form_grid_templates = {
 	"items": "templates/form_grid/item_grid.html"
@@ -521,6 +522,15 @@ def trigger_ebay_m2m_message(delivery_note,method):
 		"item_name": dn_items.get("item_code"),
 		"video_link": dn.get("video_link")
 	}
+	transaction_date = so.__dict__.get("transaction_date")
+	date_format = "%Y-%m-%d"
+	today_date = datetime.now().strftime(date_format)
+	transaction_date = datetime.strptime(str(transaction_date), date_format)
+	today_date = datetime.strptime(str(today_date), date_format)
+	delta = (today_date - transaction_date).days
+	if delta >= 90:
+		vwrite("EbayM2M communication can be used for only 90 days from transaction date. (Delta: %d)" % delta)
+		return False
 	if((dn.get("is_return")==0) and ((so.get("ebay_buyer_id") and so.get("ebay_order_id")) or (so.get("ebaytwo_buyer_id") and so.get("ebaytwo_order_id")))):
 		if(so.get("item_group")=='LED TV'):
 			subject = "IMPORTANT: Your LED TV Shipped! Important information to Claim Ebay Guarantee in case of Any Issues!"
