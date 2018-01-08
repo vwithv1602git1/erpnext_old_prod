@@ -151,7 +151,7 @@ doc_events = {
 	},
 	"Delivery Note": {
 		"before_save":"erpnext.stock.doctype.delivery_note.delivery_note.update_item_group_item_name_in_delivery_note",
-		"after_insert":"erpnext.stock.doctype.delivery_note.delivery_note.trigger_ebay_m2m_message"
+		"on_submit":"erpnext.stock.doctype.delivery_note.delivery_note.trigger_ebay_m2m_message"
 	},
 	"User": {
 		"after_insert": "frappe.email.doctype.contact.contact.update_contact",
