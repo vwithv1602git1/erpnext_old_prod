@@ -515,6 +515,8 @@ def get_ebay_buyer_id_from_dn(delivery_note_item):
 	return {"buyer_id":buyer_id,"column":column,"ebay_item_id":ebay_item_id}
 def trigger_ebay_m2m_message(delivery_note,method):
 	dn = delivery_note.__dict__
+	if not dn.get("send_email"):
+		return False
 	dn_items = dn.get("items")[0].__dict__
 	against_so = dn_items.get("against_sales_order")
 	so = frappe.get_doc("Sales Order", against_so)
