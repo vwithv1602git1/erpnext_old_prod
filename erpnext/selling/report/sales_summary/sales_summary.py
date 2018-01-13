@@ -20,6 +20,7 @@ def get_columns():
 	"""return columns based on filters"""
 	columns = [
 		_("Item Group") + ":Data:160", 
+		_("Sales Channel") + ":Data:120", 
 		_("Qty(today)") + ":Int:140",
 		_("Amount(today)") + ":Currency/currency:140", 
 		_("Qty(this week)") + ":Int:140",
@@ -113,6 +114,8 @@ def get_data():
 				total_m_amt = total_m_amt+m_d[2]
 		if not len(m_d_temp):
 			m_d_temp = m_d_temp+[0]+[0]
-		data.append([item_group]+t_d_temp+w_d_temp+m_d_temp)
+		sales_channel = item_group[item_group.find("(")+1:item_group.find(")")]
+		item_group = item_group[0:item_group.find("(")]
+		data.append([item_group]+[sales_channel]+t_d_temp+w_d_temp+m_d_temp)
 	# data.append(["<b>Total</b>",total_t_qty,total_t_amt,total_w_qty,total_w_amt,total_m_qty,total_m_amt])
 	return data
