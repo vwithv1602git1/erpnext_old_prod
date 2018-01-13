@@ -22,5 +22,7 @@ def get_column():
 	]
 
 def get_args():
+	# >>> Vamsi; 13012018; Excluding return items in 'Delivered Items To Be Billed' report
 	return {'doctype': 'Delivery Note', 'party': 'customer', 
-		'date': 'posting_date', 'order': 'name', 'order_by': 'desc'}
+		'date': 'posting_date', 'order': 'name', 'order_by': 'desc','additional_where':'removednid'}
+	# <<< Vamsi; 13012018; Excluding return items in 'Delivered Items To Be Billed' report
